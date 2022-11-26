@@ -26,6 +26,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
         const phoneCollection = client.db('mobilePlanet').collection('allPhones');
+        const bookingCollection = client.db('mobilePlanet').collection('bookPhones');
 
         app.get('/allPhones', async (req, res) => {
             const query = {};
@@ -38,6 +39,30 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const phone = await phoneCollection.findOne(query);
             res.send(phone);
+        })
+
+        app.get('/category/:category', async (req, res) => {
+            const id = req.params.category;
+            console.log(id);
+            const query = { category: id };
+            const category = await phoneCollection.find(query).toArray();
+            res.send(category);
+        })
+
+        // post booking data from user
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            console.log(booking);
+            const result = await bookingCollection.insertOne(booking);
+            res.send(result);
+        })
+
+        // get booking data for each buyer
+        app.get('/bookings', async (req, res) => {
+            const email = req.query.email;
+            const query = { Email: email };
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
         })
     }
 
