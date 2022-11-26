@@ -1,4 +1,5 @@
 const express = require('express');
+const ObjectId = require('mongodb').ObjectId;
 const cors = require('cors');
 const app = express();
 require('dotenv').config();
@@ -30,6 +31,13 @@ async function run() {
             const query = {};
             const phones = await phoneCollection.find(query).toArray();
             res.send(phones);
+        })
+
+        app.get('/allPhones/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const phone = await phoneCollection.findOne(query);
+            res.send(phone);
         })
     }
 
