@@ -121,6 +121,14 @@ async function run() {
             res.send(users);
         })
 
+        // Display all sellers in dashboard
+        app.get('/users/:role', async (req, res) => {
+            const role = req.params.role;
+            const query = { role: role };
+            const usersRole = await userCollection.find(query).toArray();
+            res.send(usersRole);
+        })
+
         // Update user to admin role
         app.put('/users/admin/:id', verifyJWT, async (req, res) => {
 
