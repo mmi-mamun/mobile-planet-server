@@ -120,6 +120,19 @@ async function run() {
             const users = await userCollection.find(query).toArray();
             res.send(users);
         })
+
+        // Update user to admin role
+        app.put('/users/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: { role: 'Admin' }
+            }
+
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
     }
 
     finally {
