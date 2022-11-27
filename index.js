@@ -122,7 +122,16 @@ async function run() {
         })
 
         // Update user to admin role
-        app.put('/users/admin/:id', async (req, res) => {
+        app.put('/users/admin/:id', verifyJWT, async (req, res) => {
+
+            // check the promoter is admin or not with verifyJWT
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await userCollection.findOne(query);
+            if (user?.role !== 'Admin') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const options = { upsert: true };
