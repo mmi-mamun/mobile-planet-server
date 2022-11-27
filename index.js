@@ -166,6 +166,21 @@ async function run() {
             const result = await productCollection.insertOne(product);
             res.send(result);
         })
+
+        // Get products from database for managing
+        app.get('/products', async (req, res) => {
+            const query = {};
+            const products = await productCollection.find(query).toArray();
+            res.send(products);
+        })
+
+        // Delete products
+        app.delete('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await productCollection.deleteOne(filter);
+            res.send(result);
+        })
     }
 
     finally {
