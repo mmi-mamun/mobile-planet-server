@@ -49,6 +49,7 @@ async function run() {
         const phoneCollection = client.db('mobilePlanet').collection('allPhones');
         const bookingCollection = client.db('mobilePlanet').collection('bookPhones');
         const userCollection = client.db('mobilePlanet').collection('users');
+        const productCollection = client.db('mobilePlanet').collection('products');
 
         app.get('/allPhones', async (req, res) => {
             const query = {};
@@ -121,7 +122,7 @@ async function run() {
             res.send(users);
         })
 
-        // Display all sellers in dashboard
+        // Display and separate all user with their role in dashboard
         app.get('/users/:role', async (req, res) => {
             const role = req.params.role;
             const query = { role: role };
@@ -157,6 +158,13 @@ async function run() {
             const query = { email };
             const user = await userCollection.findOne(query);
             res.send({ isAdmin: user?.role === 'Admin' });
+        })
+
+        // Add product by seller
+        app.post('/products', async (req, res) => {
+            const product = req.body;
+            const result = await productCollection.insertOne(product);
+            res.send(result);
         })
     }
 
