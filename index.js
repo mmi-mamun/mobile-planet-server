@@ -51,6 +51,20 @@ async function run() {
         const userCollection = client.db('mobilePlanet').collection('users');
         const productCollection = client.db('mobilePlanet').collection('products');
 
+        //NOTE: make sure you are verifyAdmin after verifyJWT
+        //verify admin
+        const verifyAdmin = async (req, res, next) => {
+            console.log('Inside verifyAdmin::', req.decoded.email);
+
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await userCollection.findOne(query);
+            if (user?.role !== 'Admin') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            next();
+        }
+
         app.get('/allPhones', async (req, res) => {
             const query = {};
             const phones = await phoneCollection.find(query).toArray();
@@ -131,15 +145,15 @@ async function run() {
         })
 
         // Update user to admin role
-        app.put('/users/admin/:id', verifyJWT, async (req, res) => {
+        app.put('/users/admin/:id', verifyJWT, verifyAdmin, async (req, res) => {
 
             // check the promoter is admin or not with verifyJWT
-            const decodedEmail = req.decoded.email;
-            const query = { email: decodedEmail };
-            const user = await userCollection.findOne(query);
-            if (user?.role !== 'Admin') {
-                return res.status(403).send({ message: 'forbidden access' })
-            }
+            // const decodedEmail = req.decoded.email;
+            // const query = { email: decodedEmail };
+            // const user = await userCollection.findOne(query);
+            // if (user?.role !== 'Admin') {
+            //     return res.status(403).send({ message: 'forbidden access' })
+            // }
 
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
@@ -161,21 +175,21 @@ async function run() {
         })
 
         // Add product by seller
-        app.post('/products', async (req, res) => {
+        app.post('/products', verifyJWT, verifyAdmin, async (req, res) => {
             const product = req.body;
             const result = await productCollection.insertOne(product);
             res.send(result);
         })
 
         // Get products from database for managing
-        app.get('/products', async (req, res) => {
+        app.get('/products', verifyJWT, verifyAdmin, async (req, res) => {
             const query = {};
             const products = await productCollection.find(query).toArray();
             res.send(products);
         })
 
         // Delete products
-        app.delete('/products/:id', async (req, res) => {
+        app.delete('/products/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const result = await productCollection.deleteOne(filter);
