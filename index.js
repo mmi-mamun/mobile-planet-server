@@ -226,6 +226,22 @@ async function run() {
                 clientSecret: paymentIntent.client_secret,
             });
         })
+
+        // store payment
+        app.post('/payments', async (req, res) => {
+            const payment = req.body;
+            const result = await paymentCollection.insertOne(payment);
+            const id = payment.bookingId;
+            const filter = { _id: ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+            const updatedResult = await bookingCollection.updateOne(filter, updateDoc)
+            res.send(result);
+        })
     }
 
     finally {
