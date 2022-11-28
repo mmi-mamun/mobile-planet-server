@@ -2,6 +2,7 @@ const express = require('express');
 const ObjectId = require('mongodb').ObjectId;
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const stripe = require("stripe")('sk_test_51M8u12KC1Cxv0cZw8TYFBONg9PQVQoOPZpw3tHEUC6as8Uk4xkREU3nwhZ62ZkGOcsvIJTMxvr5x4jtWD40e7t3a00ji61cZqD');
 const app = express();
 require('dotenv').config();
 const port = process.env.PORT || 5000;
@@ -50,6 +51,7 @@ async function run() {
         const bookingCollection = client.db('mobilePlanet').collection('bookPhones');
         const userCollection = client.db('mobilePlanet').collection('users');
         const productCollection = client.db('mobilePlanet').collection('products');
+        const paymentCollection = client.db('mobilePlanet').collection('payment');
 
         //NOTE: make sure you are verifyAdmin after verifyJWT
         //verify admin
@@ -105,6 +107,14 @@ async function run() {
             const query = { email: email };
             const bookings = await bookingCollection.find(query).toArray();
             res.send(bookings);
+        })
+
+        // get specific booking data for user
+        app.get('/bookings/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const booking = await bookingCollection.findOne(query);
+            res.send(booking);
         })
 
         // store user data
@@ -194,6 +204,27 @@ async function run() {
             const filter = { _id: ObjectId(id) };
             const result = await productCollection.deleteOne(filter);
             res.send(result);
+        })
+
+        // Payment
+        app.post('/create-payment-intent', async (req, res) => {
+            const booking = req.body;
+            // console.log(booking);
+            const price = booking.price;
+            // console.log(price)
+            const amount = price * 100;
+            console.log(amount)
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: "usd",
+                amount: amount,
+                "payment_method_types": [
+                    "card"
+                ]
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
         })
     }
 
