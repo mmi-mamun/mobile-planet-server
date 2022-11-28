@@ -52,6 +52,7 @@ async function run() {
         const userCollection = client.db('mobilePlanet').collection('users');
         const productCollection = client.db('mobilePlanet').collection('products');
         const paymentCollection = client.db('mobilePlanet').collection('payment');
+        const advertiseCollection = client.db('mobilePlanet').collection('advertise');
 
         //NOTE: make sure you are verifyAdmin after verifyJWT
         //verify admin
@@ -71,6 +72,20 @@ async function run() {
             const query = {};
             const phones = await phoneCollection.find(query).toArray();
             res.send(phones);
+        })
+
+
+        app.post('/advertise', async (req, res) => {
+            const adPhone = req.body;
+            const result = await advertiseCollection.insertOne(adPhone);
+            res.send(result);
+        })
+
+        // for advertisement
+        app.get('/advertise', async (req, res) => {
+            const query = {};
+            const adPhones = await advertiseCollection.find(query).toArray();
+            res.send(adPhones);
         })
 
         app.get('/allPhones/:id', async (req, res) => {
@@ -203,6 +218,14 @@ async function run() {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const result = await productCollection.deleteOne(filter);
+            res.send(result);
+        })
+
+        // Delete users
+        app.delete('/users/:email', verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const result = await userCollection.deleteOne(filter);
             res.send(result);
         })
 
